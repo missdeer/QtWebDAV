@@ -2,6 +2,8 @@ QT += network xml
 
 DEFINES += QWEBDAV_LIBRARY=1
 
+INCLUDEPATH += $$PWD
+
 SOURCES += \
     $$PWD/qnaturalsort.cpp \
     $$PWD/qwebdav.cpp \
