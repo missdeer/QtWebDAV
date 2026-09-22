@@ -50,6 +50,11 @@
 
 #include "qwebdav.h"
 
+static QString sanitizedUrl(const QUrl &url)
+{
+    return url.toString(QUrl::RemoveUserInfo | QUrl::RemoveQuery | QUrl::RemoveFragment);
+}
+
 QWebdav::QWebdav (QObject *parent) : QNetworkAccessManager(parent)
   ,m_rootPath()
   ,m_username()
@@ -209,7 +214,7 @@ void QWebdav::replyError(QNetworkReply::NetworkError)
         return;
 
 #ifdef DEBUG_WEBDAV
-    qDebug() << "QWebdav::replyError()  reply->url() == " << reply->url().toString(QUrl::RemoveUserInfo);
+    qDebug() << "QWebdav::replyError()  reply->url() == " << sanitizedUrl(reply->url());
 #endif
 
     if ( reply->error() == QNetworkReply::OperationCanceledError) {
@@ -228,11 +233,6 @@ void QWebdav::provideAuthenication(QNetworkReply *reply, QAuthenticator *authent
 {
 #ifdef DEBUG_WEBDAV
     qDebug() << "QWebdav::authenticationRequired()";
-    QVariantHash opts = authenticator->options();
-    QVariant optVar;
-    foreach(optVar, opts) {
-        qDebug() << "QWebdav::authenticationRequired()  option == " << optVar.toString();
-    }
 #endif
 
     if (reply == m_authenticator_lastReply) {
@@ -251,7 +251,7 @@ void QWebdav::provideAuthenication(QNetworkReply *reply, QAuthenticator *authent
 void QWebdav::sslErrors(QNetworkReply *reply, const QList<QSslError> &errors)
 {
 #ifdef DEBUG_WEBDAV
-    qDebug() << "QWebdav::sslErrors()   reply->url == " << reply->url().toString(QUrl::RemoveUserInfo);
+    qDebug() << "QWebdav::sslErrors()   reply->url == " << sanitizedUrl(reply->url());
 #endif
 
     QSslCertificate sslcert = errors[0].certificate();
@@ -313,12 +313,7 @@ QNetworkReply* QWebdav::createRequest(const QString& method, QNetworkRequest& re
 
 #ifdef DEBUG_WEBDAV
     qDebug() << " QWebdav::createRequest1";
-    qDebug() << "   " << method << " " << req.url().toString();
-    QList<QByteArray> rawHeaderList = req.rawHeaderList();
-    QByteArray rawHeaderItem;
-    foreach(rawHeaderItem, rawHeaderList) {
-        qDebug() << "   " << rawHeaderItem << ": " << req.rawHeader(rawHeaderItem);
-    }
+    qDebug() << "   " << method << " " << sanitizedUrl(req.url());
 #endif
 
     return sendCustomRequest(req, method.toLatin1(), outgoingData);
@@ -329,16 +324,6 @@ QNetworkReply* QWebdav::createRequest(const QString& method, QNetworkRequest& re
     auto dataIO = new QBuffer;
     dataIO->setData(outgoingData);
     dataIO->open(QIODevice::ReadOnly);
-
-#ifdef DEBUG_WEBDAV
-    qDebug() << " QWebdav::createRequest2";
-    qDebug() << "   " << method << " " << req.url().toString();
-    QList<QByteArray> rawHeaderList = req.rawHeaderList();
-    QByteArray rawHeaderItem;
-    foreach(rawHeaderItem, rawHeaderList) {
-        qDebug() << "   " << rawHeaderItem << ": " << req.rawHeader(rawHeaderItem);
-    }
-#endif
 
     QNetworkReply* reply = createRequest(method, req, dataIO);
     m_outDataDevices.insert(reply, dataIO);
@@ -412,7 +397,7 @@ QNetworkReply* QWebdav::get(const QString& path)
     reqUrl.setPath(absolutePath(path));
 
 #ifdef DEBUG_WEBDAV
-    qDebug() << "QWebdav::get() url = " << req.url().toString(QUrl::RemoveUserInfo);
+    qDebug() << "QWebdav::get() url = " << sanitizedUrl(req.url());
 #endif
 
     req.setUrl(reqUrl);
@@ -435,7 +420,7 @@ QNetworkReply* QWebdav::get(const QString& path, QIODevice* data, quint64 fromRa
     req.setUrl(reqUrl);
 
 #ifdef DEBUG_WEBDAV
-    qDebug() << "QWebdav::get() url = " << req.url().toString(QUrl::RemoveUserInfo);
+    qDebug() << "QWebdav::get() url = " << sanitizedUrl(req.url());
 #endif
 
     if (fromRangeInBytes>0) {
@@ -462,7 +447,7 @@ QNetworkReply* QWebdav::put(const QString& path, QIODevice* data)
     req.setUrl(reqUrl);
 
 #ifdef DEBUG_WEBDAV
-    qDebug() << "QWebdav::put() url = " << req.url().toString(QUrl::RemoveUserInfo);
+    qDebug() << "QWebdav::put() url = " << sanitizedUrl(req.url());
 #endif
 
     return QNetworkAccessManager::put(req, data);
@@ -478,7 +463,7 @@ QNetworkReply* QWebdav::put(const QString& path, const QByteArray& data)
     req.setUrl(reqUrl);
 
 #ifdef DEBUG_WEBDAV
-    qDebug() << "QWebdav::put() url = " << req.url().toString(QUrl::RemoveUserInfo);
+    qDebug() << "QWebdav::put() url = " << sanitizedUrl(req.url());
 #endif
 
     return QNetworkAccessManager::put(req, data);

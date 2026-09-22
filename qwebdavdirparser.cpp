@@ -240,7 +240,8 @@ void QWebdavDirParser::replyDeleteLater(QNetworkReply* reply)
         return;
 
 #ifdef DEBUG_WEBDAV
-    qDebug() << "QWebdavDirParser::replyDeleteLater()   reply->url == " << reply->url().toString(QUrl::RemoveUserInfo);
+    qDebug() << "QWebdavDirParser::replyDeleteLater()   reply->url == "
+             << reply->url().toString(QUrl::RemoveUserInfo | QUrl::RemoveQuery | QUrl::RemoveFragment);
     qDebug() << "QWebdavDirParser::replyDeleteLater()      reply->isFinished() == " << reply->isFinished();
     qDebug() << "QWebdavDirParser::replyDeleteLater()      reply->bytesAvailable() == " << reply->bytesAvailable();
     qDebug() << "QWebdavDirParser::replyDeleteLater()      reply->bytesToWrite() == " << reply->bytesToWrite();
